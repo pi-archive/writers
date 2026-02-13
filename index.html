@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archive / Modern Vision</title>
+    <link href="https://fonts.googleapis.com/css2?family=La+Belle+Aurore&family=Syne:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {            
+            --bg: #000000;            
+            --ios-accent: #007aff;            
+            --ios-pink: #ff007a; 
+            --ios-blue: #007aff; 
+            --text: #ffffff;            
+            --ios-blur: rgba(28, 28, 30, 0.7);            
+            --apple-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--apple-font); overflow-x: hidden; letter-spacing: -0.01em; }
+        .bg-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25vw; font-weight: 900; color: rgba(255, 255, 255, 0.02); white-space: nowrap; z-index: -1; pointer-events: none; text-transform: uppercase; font-family: 'Syne'; }
+
+        nav { position: fixed; top: 0; width: 100%; padding: 30px 50px; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; z-index: 1000; background: rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        nav .logo { font-weight: 800; font-size: 1.2rem; cursor: pointer; font-family: 'Syne'; }
+        
+        .search-area { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; }
+        #search-input-wrapper { display: none; background: rgba(255,255,255,0.12); border-radius: 18px; padding: 6px 14px; border: 0.5px solid rgba(255,255,255,0.1); }
+        #search-query { background: transparent; border: none; color: white; outline: none; font-size: 0.85rem; width: 140px; font-family: var(--apple-font); }
+
+        nav ul { list-style: none; display: flex; gap: 35px; margin: 0; padding: 0; }
+        nav li { font-size: 0.65rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.15em; cursor: pointer; opacity: 0.4; transition: 0.3s; }
+        nav li.active { opacity: 1; font-weight: 700; color: var(--ios-accent); }
+
+        .scroller { padding: 140px 5vw; min-height: 100vh; display: none; position: relative; }
+        .scroller.active { display: block; }
+
+        .section-header { display: flex; justify-content: flex-end; align-items: center; height: 40px; margin-bottom: 20px; }
+
+        .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 30px; }
+        .archive-item { cursor: pointer; transition: 0.4s cubic-bezier(0.1, 0.9, 0.2, 1); }
+        .img-wrap { width: 100%; aspect-ratio: 2/3; overflow: hidden; border-radius: 22px; margin-bottom: 12px; background: #1c1c1e; border: 0.5px solid rgba(255,255,255,0.1); }
+        .archive-item img { width: 100%; height: 100%; object-fit: cover; }
+
+        .imessage-container { max-width: 480px; margin: 0 auto; background: var(--ios-blur); border-radius: 35px; padding: 40px; border: 0.5px solid rgba(255,255,255,0.15); }
+        .ios-label { font-size: 0.7rem; color: #8e8e93; margin-bottom: 8px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
+        input, textarea { width: 100%; background: rgba(255,255,255,0.08); border: none; border-radius: 16px; padding: 16px; color: white; outline: none; margin-bottom: 18px; box-sizing: border-box; font-family: var(--apple-font); }
+        .save-btn { width: 100%; padding: 18px; border-radius: 18px; background: var(--ios-accent); color: #fff; font-weight: 700; border: none; cursor: pointer; }
+
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 2000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.5s ease; overflow: hidden; }
+        .modal.active { display: flex; opacity: 1; }
+        .modal-bg-glow { position: absolute; top: -10%; left: -10%; width: 120%; height: 120%; background-size: cover; background-position: center; filter: blur(80px) brightness(0.5) saturate(1.8); z-index: -1; opacity: 0.8; }
+        .modal-content { width: 95%; max-width: 920px; display: flex; flex-direction: row; gap: 30px; background: rgba(28, 28, 30, 0.5); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border-radius: 40px; padding: 40px; border: 1px solid rgba(255, 255, 255, 0.15); height: 82vh; overflow: hidden; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8); }
+        .modal-left { width: 360px; flex-shrink: 0; }
+        .modal-left img { width: 100%; height: 100%; object-fit: cover; border-radius: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .modal-right { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding-right: 15px; }
+        
+        .edit-field { background: transparent; border: 1px solid transparent; color: white; transition: 0.2s; padding: 8px; width: 100%; margin-left: -8px; }
+        .edit-field:focus { background: rgba(255,255,255,0.06); border-color: var(--ios-accent); border-radius: 8px; outline: none; }
+
+        #comment-section { margin-top: 30px; background: rgba(0, 0, 0, 0.2); border-radius: 30px; padding: 25px; border: 1px solid rgba(255,255,255,0.08); display: none; }
+        .chat-wrap { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+        .comment-item { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative; }
+        .comment-item.reply { margin-left: 30px; border-left: 2px solid var(--ios-accent); padding-left: 15px; border-bottom: none; margin-top: -10px; background: rgba(255,255,255,0.02); border-radius: 0 0 0 10px; }
+
+        /* Calendar Styles */
+        #calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .cal-day { min-height: 120px; background: rgba(255,255,255,0.03); border-radius: 15px; padding: 12px; border: 0.5px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.3s; }
+        .cal-day:hover { background: rgba(255,255,255,0.08); }
+        .cal-day span { font-size: 0.75rem; font-weight: 700; opacity: 0.3; }
+        .cal-event { background: var(--ios-accent); font-size: 0.65rem; padding: 5px 8px; border-radius: 8px; margin-top: 5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Stats Styles (레이아웃 수정됨) */
+        .stats-poster { margin-top: 40px; display: flex; flex-direction: column; gap: 0; line-height: 0.85; }
+        .large-text { font-family: 'Syne'; font-size: 11vw; font-weight: 900; letter-spacing: -0.05em; display: block; text-transform: uppercase; }
+        .accent-pink { color: var(--ios-pink); font-family: 'Syne'; font-size: 13vw; font-weight: 900; display: block; margin: -1vw 0; }
+        .accent-blue { color: var(--ios-blue); font-family: 'Syne'; font-size: 13vw; font-weight: 900; display: inline-block; margin-right: 20px; }
+        .stat-row { display: flex; align-items: baseline; }
+
+        @media (max-width: 600px) {
+            .comment-item.reply { margin-left: 15px; padding-left: 10px; }
+            .modal-content { flex-direction: column; height: 90vh; padding: 25px; gap: 20px; }
+            .modal-left { width: 100%; height: 250px; }
+            .large-text { font-size: 15vw; }
+            .accent-pink, .accent-blue { font-size: 18vw; }
+        }
+
+        .comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .comment-author { font-size: 0.75rem; font-weight: 800; color: var(--ios-accent); text-transform: uppercase; }
+        .comment-text { font-size: 0.9rem; color: #efefef; line-height: 1.5; word-break: break-all; }
+        .comment-actions { display: flex; gap: 12px; margin-top: 8px; font-size: 0.65rem; opacity: 0.4; transition: 0.2s; }
+        .comment-item:hover .comment-actions { opacity: 1; }
+        .comment-actions span { cursor: pointer; }
+        .comment-actions span:hover { color: var(--ios-accent); }
+
+        .chat-input-bar { display: flex; background: rgba(255,255,255,0.1); border-radius: 30px; padding: 6px 6px 6px 18px; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.05); margin-top: 15px; }
+        #cmt-author { width: 60px; border-right: 1px solid rgba(255,255,255,0.1) !important; padding: 8px 0; margin-bottom: 0; background: none; flex-shrink: 0; }
+        #cmt-text { flex: 1; margin-bottom: 0; background: none; padding: 8px 0; }
+        .send-btn { background: var(--ios-accent); color: white; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .more-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <div class="bg-text" id="bgText">ARCHIVE</div>
+    <nav>
+        <div class="logo" onclick="showSection('main')">ARCHIVE.</div>
+        <div class="search-area">
+            <i class="fas fa-search search-trigger" onclick="toggleSearchBox()" style="cursor:pointer;"></i>
+            <div id="search-input-wrapper">
+                <input type="text" id="search-query" placeholder="Search memories..." onkeypress="handleSearch(event)">
+            </div>
+        </div>
+        <ul>
+            <li onclick="showSection('main')" id="nav-main" class="active">Write</li>
+            <li onclick="showSection('dvd')" id="nav-dvd">DVD Store</li>
+            <li onclick="showSection('book')" id="nav-book">Library</li>
+            <li onclick="showSection('cal')" id="nav-cal">Calendar</li>
+            <li onclick="showSection('stats')" id="nav-stats">Count</li>
+        </ul>
+    </nav>
+
+    <section id="main" class="scroller active">
+        <h1 style="font-size: 6vw; font-family: 'Syne'; font-weight: 800; margin-bottom: 40px; letter-spacing: -0.04em;">MEMORIES_</h1>
+        <div class="imessage-container">
+            <div style="display: flex; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 4px; margin-bottom: 30px;">
+                <div class="cat-btn active" id="btn-movie" onclick="setCategory('movie')" style="flex:1; padding:12px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Movie</div>
+                <div class="cat-btn" id="btn-book" onclick="setCategory('book')" style="flex:1; padding:12px; text-align:center; cursor:pointer; border-radius:10px; font-size:0.75rem; font-weight:700;">Book</div>
+            </div>
+            <div class="ios-label">Title</div><input type="text" id="in-title">
+            <div style="display:flex; gap:15px;">
+                <div style="flex: 2;"><div class="ios-label" id="label-author">Director</div><input type="text" id="in-author"></div>
+                <div style="flex: 1;" id="year-field"><div class="ios-label">Year</div><input type="text" id="in-year" placeholder="2026"></div>
+            </div>
+            <div class="ios-label">Image URL</div><input type="text" id="in-img">
+            <div class="ios-label">Review</div><textarea id="in-review" rows="3"></textarea>
+            <div id="price-input-group"><div class="ios-label">Value</div><input type="number" id="in-price"></div>
+            <button class="save-btn" onclick="saveRecord()">Save Archive</button>
+        </div>
+    </section>
+
+    <section id="dvd" class="scroller">
+        <div class="section-header">
+            <button onclick="toggleSort()" style="background:rgba(255,255,255,0.05); color:#8e8e93; border:0.5px solid #333; padding:8px 15px; border-radius:12px; font-size:0.65rem; font-weight:700; cursor:pointer;">SORT: <span id="sort-label">DEFAULT</span></button>
+        </div>
+        <div class="archive-grid" id="dvd-grid"></div>
+    </section>
+    
+    <section id="book" class="scroller">
+        <div class="section-header"></div>
+        <div class="archive-grid" id="book-grid"></div>
+    </section>
+
+    <section id="cal" class="scroller">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:30px;">
+            <h1 id="cal-month-title" style="font-family:'Syne'; font-size:4.5rem; margin:0; font-weight:800; line-height:0.8;">MONTH</h1>
+            <div style="display:flex; gap:10px;">
+                <button onclick="changeMonth(-1)" style="background:none; color:white; border:0.5px solid #444; padding:10px 20px; border-radius:12px; font-size:0.7rem; cursor:pointer;">PREV</button>
+                <button onclick="changeMonth(1)" style="background:none; color:white; border:0.5px solid #444; padding:10px 20px; border-radius:12px; font-size:0.7rem; cursor:pointer;">NEXT</button>
+            </div>
+        </div>
+        <div id="calendar"></div>
+        <div id="event-form" style="display:none; margin-top:40px; background:rgba(255,255,255,0.03); padding:30px; border-radius:25px; border:0.5px solid #333;">
+            <div class="ios-label">Event Memory</div><input type="text" id="ev-text">
+            <div class="ios-label">Memo Detail</div><textarea id="ev-memo" rows="2"></textarea>
+            <div style="display:flex; gap:10px; margin-bottom:20px;"><input type="date" id="ev-start"><input type="date" id="ev-end"></div>
+            <button class="save-btn" onclick="saveEvent()">Save to Memory</button>
+        </div>
+    </section>
+
+    <section id="stats" class="scroller">
+        <div style="font-size: 0.8rem; color: #444; font-weight: 700; letter-spacing: 0.3em; margin-bottom: 20px;">ARCHIVE STATS_</div>
+        <div class="stats-poster">
+            <span class="large-text">TOTAL</span> 
+            <span class="accent-pink" id="stat-movie">0</span>
+            <span class="large-text">MOVIES</span>
+            <span class="large-text">COLLECTED</span>
+            <div class="stat-row">
+                <span class="accent-blue" id="stat-book">0</span> 
+                <span class="large-text">BOOKS.</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="modal" id="modal" onclick="closeModal()">
+        <div class="modal-bg-glow" id="m-bg-glow"></div>
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-left"><img src="" id="m-img"></div>
+            <div class="modal-right">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div id="m-meta" style="color:var(--ios-accent); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.1em;">META INFO</div>
+                    <button onclick="deleteRecord()" style="background:none; color:#ff453a; border:none; cursor:pointer; font-size:0.65rem; font-weight:800; opacity:0.6;">DELETE CARD</button>
+                </div>
+                <input type="text" id="edit-title" class="edit-field" style="font-family:'Syne'; font-size: 3rem; font-weight: 800; margin: 10px 0; letter-spacing: -0.02em;" readonly>
+                <textarea id="edit-review" class="edit-field" style="font-size: 1.1rem; color: #d1d1d6; line-height: 1.7; min-height: 120px; resize: none; margin-bottom: 20px;" readonly></textarea>
+                
+                <div style="display:flex; align-items:center; gap:20px;">
+                    <div id="m-price-container" style="display:flex; align-items:center; font-size: 1.5rem; font-weight: 900; color:white; background:rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 12px;">
+                        <span style="color:var(--ios-accent); margin-right:5px;">₩</span>
+                        <input type="number" id="edit-price" class="edit-field" style="font-size: 1.5rem; font-weight: 900; width: 140px; margin:0; padding:0;" readonly>
+                    </div>
+                    <button onclick="toggleEditMode()" id="update-btn" style="background:white; color:black; border:none; padding:12px 24px; border-radius:15px; font-weight:800; cursor:pointer; font-size:0.7rem;">EDIT</button>
+                </div>
+
+                <button class="more-btn" onclick="toggleComments()">View Discussion & Memos</button>
+                <div id="comment-section">
+                    <div id="comment-list" class="chat-wrap"></div>
+                    <div class="chat-input-bar">
+                        <input type="text" id="cmt-author" placeholder="Name">
+                        <input type="text" id="cmt-text" placeholder="Write a comment...">
+                        <button class="send-btn" onclick="addComment()"><i class="fas fa-arrow-up"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyA_tiN-nm1ztfHWTSGcmf7pZawSNy8ahM0", authDomain: "watcha-1d01a.firebaseapp.com", projectId: "watcha-1d01a", storageBucket: "watcha-1d01a.firebasestorage.app", messagingSenderId: "293815354232", appId: "1:293815354232:web:3f0ceaba4d2f13c58a7e8d" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const archiveCol = collection(db, "archives");
+
+        window.currentCategory = 'movie';
+        window.records = [];
+        window.events = JSON.parse(localStorage.getItem('events_v5')) || [];
+        window.currentCalDate = new Date();
+        window.priceSort = 'none';
+        window.selectedId = null;
+        window.replyToId = null;
+        window.isEditing = false;
+
+        onSnapshot(query(archiveCol, orderBy("timestamp", "desc")), (snapshot) => {
+            window.records = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderRecords();
+            if(window.selectedId) {
+                const updated = window.records.find(r => r.id === window.selectedId);
+                if(updated) renderComments(updated);
+            }
+        });
+
+        window.renderRecords = () => {
+            const dg = document.getElementById('dvd-grid'), bg = document.getElementById('book-grid');
+            dg.innerHTML = ''; bg.innerHTML = '';
+            const q = document.getElementById('search-query').value.toLowerCase();
+            let filtered = window.records.filter(r => r.title.toLowerCase().includes(q) || r.author.toLowerCase().includes(q));
+            if(window.priceSort !== 'none') filtered.sort((a,b) => window.priceSort === 'asc' ? (a.price-b.price) : (b.price-a.price));
+            
+            filtered.forEach(r => {
+                const item = document.createElement('div'); item.className = 'archive-item';
+                item.onclick = () => openModal(r);
+                item.innerHTML = `<div class="img-wrap"><img src="${r.img}"></div><div style="text-align:center;font-weight:600;font-size:0.8rem;">${r.title}</div>`;
+                if(r.category === 'movie') dg.appendChild(item); else bg.appendChild(item);
+            });
+            document.getElementById('stat-movie').innerText = window.records.filter(r=>r.category==='movie').length;
+            document.getElementById('stat-book').innerText = window.records.filter(r=>r.category==='book').length;
+        };
+
+        window.openModal = (r) => { 
+            window.selectedId = r.id;
+            window.isEditing = false;
+            document.getElementById('m-img').src = r.img;
+            document.getElementById('m-bg-glow').style.backgroundImage = `url(${r.img})`;
+            document.getElementById('edit-title').value = r.title;
+            document.getElementById('edit-review').value = r.review;
+            document.getElementById('edit-price').value = r.price || 0;
+            document.getElementById('update-btn').innerText = "EDIT";
+            document.getElementById('m-meta').innerText = r.category === 'movie' ? `${r.author} / ${r.year}` : r.author;
+            document.getElementById('m-price-container').style.visibility = r.category === 'movie' ? 'visible' : 'hidden';
+            document.getElementById('comment-section').style.display = 'none';
+            renderComments(r);
+            const m = document.getElementById('modal'); m.style.display = 'flex';
+            setTimeout(() => m.classList.add('active'), 10);
+        };
+
+        window.renderComments = (r) => {
+            const list = document.getElementById('comment-list'); list.innerHTML = '';
+            const comments = r.comments || [];
+            const renderLoop = (parentId = null) => {
+                comments.filter(c => (c.parentId || null) === parentId).forEach(c => {
+                    const item = document.createElement('div');
+                    item.className = `comment-item ${parentId ? 'reply' : ''}`;
+                    item.innerHTML = `
+                        <div class="comment-header"><span class="comment-author">${c.author}</span></div>
+                        <div class="comment-text">${c.text}</div>
+                        <div class="comment-actions">
+                            <span onclick="setReply('${c.time}')">Reply</span>
+                            <span onclick="editComment('${c.time}')">Edit</span>
+                            <span onclick="deleteComment('${c.time}')">Delete</span>
+                        </div>`;
+                    list.appendChild(item);
+                    renderLoop(c.time);
+                });
+            };
+            renderLoop(null);
+        };
+
+        window.setReply = (timeId) => {
+            window.replyToId = timeId;
+            const input = document.getElementById('cmt-text'); 
+            input.placeholder = "Replying..."; input.focus();
+            input.style.border = "1px solid var(--ios-accent)";
+        };
+
+        window.addComment = async () => {
+            const author = document.getElementById('cmt-author').value || "Guest", text = document.getElementById('cmt-text').value;
+            if(!text) return;
+            const r = window.records.find(rec => rec.id === window.selectedId);
+            const comments = r.comments || [];
+            comments.push({ author, text, time: String(Date.now()), parentId: window.replyToId });
+            await updateDoc(doc(db, "archives", window.selectedId), { comments });
+            document.getElementById('cmt-text').value = ''; 
+            document.getElementById('cmt-text').placeholder = "Write a comment...";
+            document.getElementById('cmt-text').style.border = "none";
+            window.replyToId = null;
+        };
+
+        window.deleteComment = async (timeId) => {
+            if(!confirm("댓글을 삭제하시겠습니까?")) return;
+            const r = window.records.find(rec => rec.id === window.selectedId);
+            const comments = r.comments.filter(c => c.time !== timeId && c.parentId !== timeId);
+            await updateDoc(doc(db, "archives", window.selectedId), { comments });
+        };
+
+        window.editComment = async (timeId) => {
+            const r = window.records.find(rec => rec.id === window.selectedId);
+            const c = r.comments.find(com => com.time === timeId);
+            const newText = prompt("댓글 수정:", c.text);
+            if(newText) {
+                const comments = r.comments.map(com => com.time === timeId ? {...com, text: newText} : com);
+                await updateDoc(doc(db, "archives", window.selectedId), { comments });
+            }
+        };
+
+        window.showSection = (id) => { document.querySelectorAll('.scroller').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('nav li').forEach(l => l.classList.remove('active')); document.getElementById('nav-' + id).classList.add('active'); document.getElementById('bgText').innerText = id.toUpperCase(); if(id === 'cal') renderCalendar(); };
+        window.setCategory = (cat) => { window.currentCategory = cat; document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-' + cat).classList.add('active'); document.getElementById('label-author').innerText = cat === 'movie' ? 'Director' : 'Author'; document.getElementById('year-field').style.display = cat === 'book' ? 'none' : 'block'; document.getElementById('price-input-group').style.display = cat === 'book' ? 'none' : 'block'; };
+        window.toggleComments = () => { const div = document.getElementById('comment-section'); div.style.display = div.style.display === 'block' ? 'none' : 'block'; };
+        window.deleteRecord = async () => { if(confirm("Delete?")) { await deleteDoc(doc(db, "archives", window.selectedId)); closeModal(); } };
+        window.toggleSearchBox = () => { const w = document.getElementById('search-input-wrapper'); w.style.display = w.style.display === 'block' ? 'none' : 'block'; if(w.style.display === 'block') document.getElementById('search-query').focus(); };
+        window.handleSearch = (e) => { if(e.key === 'Enter') renderRecords(); };
+        window.toggleSort = () => { window.priceSort = window.priceSort === 'none' ? 'asc' : (window.priceSort === 'asc' ? 'desc' : 'none'); document.getElementById('sort-label').innerText = window.priceSort.toUpperCase(); renderRecords(); };
+        window.saveRecord = async () => {
+            const title = document.getElementById('in-title').value; if(!title) return;
+            await addDoc(archiveCol, { category: window.currentCategory, title, author: document.getElementById('in-author').value, year: document.getElementById('in-year').value, img: document.getElementById('in-img').value, review: document.getElementById('in-review').value, price: Number(document.getElementById('in-price').value) || 0, comments: [], timestamp: Date.now() });
+            document.querySelectorAll('#main input, #main textarea').forEach(i => i.value='');
+        };
+        window.toggleEditMode = async () => {
+            const titleField = document.getElementById('edit-title'), reviewField = document.getElementById('edit-review'), priceField = document.getElementById('edit-price'), updateBtn = document.getElementById('update-btn');
+            if (!window.isEditing) { window.isEditing = true; titleField.readOnly = false; reviewField.readOnly = false; priceField.readOnly = false; updateBtn.innerText = "SAVE CHANGES"; }
+            else { await updateDoc(doc(db, "archives", window.selectedId), { title: titleField.value, review: reviewField.value, price: Number(priceField.value) || 0 }); window.isEditing = false; titleField.readOnly = true; reviewField.readOnly = true; priceField.readOnly = true; updateBtn.innerText = "EDIT"; }
+        };
+        window.closeModal = () => { const m = document.getElementById('modal'); m.classList.remove('active'); setTimeout(() => { m.style.display = 'none'; window.selectedId = null; window.replyToId = null; }, 500); };
+        
+        window.changeMonth = (v) => { window.currentCalDate.setMonth(window.currentCalDate.getMonth()+v); renderCalendar(); };
+        window.renderCalendar = () => {
+            const cal = document.getElementById('calendar'); cal.innerHTML = '';
+            const y = window.currentCalDate.getFullYear(), m = window.currentCalDate.getMonth();
+            document.getElementById('cal-month-title').innerText = `${new Intl.DateTimeFormat('en-US',{month:'long'}).format(window.currentCalDate).toUpperCase()}`;
+            const first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
+            for(let i=0; i<first; i++) cal.appendChild(document.createElement('div')).className='cal-day';
+            for(let d=1; d<=days; d++) {
+                const day = document.createElement('div'); day.className = 'cal-day'; day.innerHTML = `<span>${d}</span>`;
+                const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                day.onclick = () => { document.getElementById('event-form').style.display='block'; document.getElementById('ev-start').value=ds; document.getElementById('ev-end').value=ds; };
+                window.events.filter(e => ds >= e.start && ds <= e.end).forEach(e => {
+                    const ev = document.createElement('div'); ev.className = 'cal-event'; ev.innerText = e.text;
+                    ev.onclick = (ex) => { ex.stopPropagation(); if(confirm(`Delete?`)) { window.events = window.events.filter(v => v.id !== e.id); localStorage.setItem('events_v5', JSON.stringify(window.events)); renderCalendar(); } };
+                    day.appendChild(ev);
+                });
+                cal.appendChild(day);
+            }
+        };
+        window.saveEvent = () => { const text = document.getElementById('ev-text').value; if(!text) return; window.events.push({id:Date.now(), text, memo:document.getElementById('ev-memo').value, start:document.getElementById('ev-start').value, end:document.getElementById('ev-end').value}); localStorage.setItem('events_v5', JSON.stringify(window.events)); renderCalendar(); document.getElementById('event-form').style.display='none'; };
+
+        // ESC 키로 모달 닫기 추가
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('modal');
+                if (modal.style.display === 'flex') {
+                    closeModal();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
